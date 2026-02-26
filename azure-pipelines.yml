@@ -19,12 +19,9 @@ steps:
     backendAzureRmKey: 'backup.tfstate'
 
 - task: TerraformTask@5
-  displayName: terraform plan   
+  displayName: terraform plan
   inputs:
     provider: 'azurerm'
-    command: 'init'
+    command: 'plan'
     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
-    backendServiceArm: 'autoservicesonnection'
-    backendAzureRmStorageAccountName: 'storagegauravssris'
-    backendAzureRmContainerName: 'storagecontainer38'
-    backendAzureRmKey: 'backup.tfstate'
+    environmentServiceNameAzureRM: 'autoservicesonnection'
