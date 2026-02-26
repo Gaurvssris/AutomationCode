@@ -8,10 +8,11 @@ pool:
 
 steps:
 - task: TerraformTask@5
-  displayName: "Terraform Init"
+  displayName: terraform init
   inputs:
     provider: 'azurerm'
     command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Roor/Dev'
     backendServiceArm: 'gauravssris'
     backendAzureRmStorageAccountName: 'storagegauravssris'
     backendAzureRmContainerName: 'storagecontainer38'
