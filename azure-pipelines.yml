@@ -11,27 +11,29 @@ stages:
 # Stage 1 - Build
 # ---------------------------
 - stage: Build
-  displayName: "Build Stage"
+  displayName: "Dev"
 
   jobs:
   - job: BuildJob
     displayName: "Build Job"
 
     steps:
-    - task: PowerShell@2
-      displayName: "Run Build Script"
+    - task: TerraformTask@5
       inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Build Stage Started"
-          Write-Host "Compiling Application..."
-          Write-Host "Build Completed Successfully"
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        backendServiceArm: 'autoservicesonnection'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'storagecontainer38'
+        backendAzureRmKey: 'backup.tfstate'
+  
 
 # ---------------------------
 # Stage 2 - Test
 # ---------------------------
 - stage: Test
-  displayName: "Test Stage"
+  displayName: "Prod"
   dependsOn: Build
 
   jobs:
@@ -39,19 +41,22 @@ stages:
     displayName: "Test Job"
 
     steps:
-    - task: PowerShell@2
-      displayName: "Run Test Script"
+    - task: TerraformTask@5
       inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Running Tests..."
-          Write-Host "All Tests Passed"
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+        backendServiceArm: 'autoservicesonnection'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'storagecontainer38'
+        backendAzureRmKey: 'backup.tfstate'
+
 
 # ---------------------------
 # Stage 3 - Deploy
 # ---------------------------
 - stage: Deploy
-  displayName: "Deploy Stage"
+  displayName: "QA"
   dependsOn: Test
 
   jobs:
@@ -59,13 +64,16 @@ stages:
     displayName: "Deploy Job"
 
     steps:
-    - task: PowerShell@2
-      displayName: "Deploy Script"
+    - task: TerraformTask@5
       inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Deployment Started..."
-          Write-Host "Application Deployed Successfully"
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+        backendServiceArm: 'autoservicesonnection'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'storagecontainer38'
+        backendAzureRmKey: 'backup.tfstate'
+
 # steps:
 # - task: TerraformTask@5
 #   displayName: terraform init
