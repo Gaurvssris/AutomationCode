@@ -1,27 +1,87 @@
 
-
 trigger:
 - main
 
 pool:
   name: Automated
 
-steps:
-- task: TerraformTask@5
-  displayName: terraform init
-  inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
-    backendServiceArm: 'autoservicesonnection'
-    backendAzureRmStorageAccountName: 'storagegauravssris'
-    backendAzureRmContainerName: 'storagecontainer38'
-    backendAzureRmKey: 'backup.tfstate'
+stages:
 
-- task: TerraformTask@5
-  displayName: terraform plan
-  inputs:
-    provider: 'azurerm'
-    command: 'plan'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
-    environmentServiceNameAzureRM: 'autoservicesonnection'
+# ---------------------------
+# Stage 1 - Build
+# ---------------------------
+- stage: Build
+  displayName: "Build Stage"
+
+  jobs:
+  - job: BuildJob
+    displayName: "Build Job"
+
+    steps:
+    - task: PowerShell@2
+      displayName: "Run Build Script"
+      inputs:
+        targetType: 'inline'
+        script: |
+          Write-Host "Build Stage Started"
+          Write-Host "Compiling Application..."
+          Write-Host "Build Completed Successfully"
+
+# ---------------------------
+# Stage 2 - Test
+# ---------------------------
+- stage: Test
+  displayName: "Test Stage"
+  dependsOn: Build
+
+  jobs:
+  - job: TestJob
+    displayName: "Test Job"
+
+    steps:
+    - task: PowerShell@2
+      displayName: "Run Test Script"
+      inputs:
+        targetType: 'inline'
+        script: |
+          Write-Host "Running Tests..."
+          Write-Host "All Tests Passed"
+
+# ---------------------------
+# Stage 3 - Deploy
+# ---------------------------
+- stage: Deploy
+  displayName: "Deploy Stage"
+  dependsOn: Test
+
+  jobs:
+  - job: DeployJob
+    displayName: "Deploy Job"
+
+    steps:
+    - task: PowerShell@2
+      displayName: "Deploy Script"
+      inputs:
+        targetType: 'inline'
+        script: |
+          Write-Host "Deployment Started..."
+          Write-Host "Application Deployed Successfully"
+# steps:
+# - task: TerraformTask@5
+#   displayName: terraform init
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'init'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#     backendServiceArm: 'autoservicesonnection'
+#     backendAzureRmStorageAccountName: 'storagegauravssris'
+#     backendAzureRmContainerName: 'storagecontainer38'
+#     backendAzureRmKey: 'backup.tfstate'
+
+# - task: TerraformTask@5
+#   displayName: terraform plan
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'plan'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#     environmentServiceNameAzureRM: 'autoservicesonnection'
