@@ -19,6 +19,7 @@ stages:
 
     steps:
     - task: TerraformTask@5
+      displayName: Terraform init
       inputs:
         provider: 'azurerm'
         command: 'init'
@@ -29,6 +30,7 @@ stages:
         backendAzureRmKey: 'backup.tfstate'
 
     - task: TerraformTask@5
+      displayName: terraform validate 
       inputs:
         provider: 'azurerm'
         command: 'validate'
@@ -56,6 +58,12 @@ stages:
         backendAzureRmStorageAccountName: 'storagegauravssris'
         backendAzureRmContainerName: 'storagecontainer38'
         backendAzureRmKey: 'backup.tfstate'
+    - task: TerraformTask@5
+      displayName: terraform validate
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
 
 
 # ---------------------------
@@ -79,6 +87,12 @@ stages:
         backendAzureRmStorageAccountName: 'storagegauravssris'
         backendAzureRmContainerName: 'storagecontainer38'
         backendAzureRmKey: 'backup.tfstate'
+    - task: TerraformTask@5
+      displayName: terraform validate
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
 
 # steps:
 # - task: TerraformTask@5
