@@ -1,12 +1,12 @@
-
-
 trigger:
 - main
 
 pool:
-  vmImage: Automated
+  name: Automated   # agar self-hosted agent hai
 
+steps:
 - task: TerraformTask@5
+  displayName: terraform init
   inputs:
     provider: 'azurerm'
     command: 'init'
