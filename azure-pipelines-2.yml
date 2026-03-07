@@ -12,8 +12,9 @@ steps:
   inputs:
     provider: 'azurerm'
     command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/Dev/Root'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
     backendServiceArm: 'gaurav983808'
     backendAzureRmResourceGroupName: 'example-resources'
     backendAzureRmStorageAccountName: 'storagegauravssris'
     backendAzureRmContainerName: 'gauravbackuptfstate'
+    backendAzureRmKey: 'backup.tfstate'
