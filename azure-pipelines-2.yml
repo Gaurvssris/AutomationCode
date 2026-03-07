@@ -6,15 +6,49 @@ trigger:
 pool:
   name: automated
 
-steps:
-- task: TerraformTask@5
-  displayName: Terraform Init
-  inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
-    backendServiceArm: 'gaurav983808'
-    backendAzureRmResourceGroupName: 'example-resources'
-    backendAzureRmStorageAccountName: 'storagegauravssris'
-    backendAzureRmContainerName: 'gauravbackuptfstate'
-    backendAzureRmKey: 'backup.tfstate'
+stages:
+
+# ---------------- DEV STAGE ----------------
+
+- stage: Dev
+  displayName: "Dev Stage"
+
+  jobs:
+  - job: DevJob
+    displayName: "Terraform Dev Job"
+
+    steps:
+    - task: TerraformTask@5
+      displayName: "Terraform Init Dev"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        backendServiceArm: 'gaurav983808'
+        backendAzureRmResourceGroupName: 'example-resources'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'backup.tfstate'
+
+# ---------------- PROD STAGE ----------------
+
+- stage: Prod
+  displayName: "Prod Stage"
+  dependsOn: Dev
+
+  jobs:
+  - job: ProdJob
+    displayName: "Terraform Prod Job"
+
+    steps:
+    - task: TerraformTask@5
+      displayName: "Terraform Init Prod"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+        backendServiceArm: 'gaurav983808'
+        backendAzureRmResourceGroupName: 'example-resources'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'backup.tfstate'
