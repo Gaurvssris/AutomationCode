@@ -54,7 +54,7 @@ stages:
         backendAzureRmKey: 'backup.tfstate'
 - stage: QA
   displayName: "QA Stage"
-  dependsOn: Dev
+  
 
   jobs:
   - job: QAJob
