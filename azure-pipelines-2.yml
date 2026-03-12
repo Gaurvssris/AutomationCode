@@ -29,6 +29,13 @@ stages:
         backendAzureRmStorageAccountName: 'storagegauravssris'
         backendAzureRmContainerName: 'gauravbackuptfstate'
         backendAzureRmKey: 'backup.tfstate'
+    - task: TerraformTask@5
+      displayName: Terraform Plan Dev
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        environmentServiceNameAzureRM: 'gaurav983808'
 
 # ---------------- PROD STAGE ----------------
 
