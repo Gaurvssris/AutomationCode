@@ -22,3 +22,20 @@ stages:
         backendAzureRmStorageAccountName: 'storagegauravssris'
         backendAzureRmContainerName: 'gauravbackuptfstate'
         backendAzureRmKey: 'backup.tfstate'
+# PROD STAGE
+- stage: Prod_Init
+  displayName: Prod Terraform Init
+  jobs:
+  - job: InitProd
+    steps:
+    - task: TerraformTask@5
+      displayName: Terraform Init Prod
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+        backendServiceArm: 'FreshServiceConnection'
+        backendAzureRmResourceGroupName: 'rg-terraform-state'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'prod.tfstate'        
