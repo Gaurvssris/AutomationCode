@@ -5,11 +5,11 @@ pool:
   name: FreshAgent
 
 stages:
-
-- stage: Terraform_Init
-  displayName: Terraform Init Stage
+# DEV STAGE
+- stage: Dev_Init
+  displayName: Dev Terraform Init
   jobs:
-  - job: Init
+  - job: InitDev
     steps:
     - task: TerraformTask@5
       displayName: Terraform Init
@@ -39,3 +39,21 @@ stages:
         backendAzureRmStorageAccountName: 'storagegauravssris'
         backendAzureRmContainerName: 'gauravbackuptfstate'
         backendAzureRmKey: 'prod.tfstate'        
+# QA STAGE
+- stage: QA_Init
+  displayName: QA Terraform Init
+  jobs:
+  - job: InitQA
+    displayName: Init QA Infrastructure
+    steps:
+    - task: TerraformTask@5
+      displayName: Terraform Init QA
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+        backendServiceArm: 'FreshServiceConnection'
+        backendAzureRmResourceGroupName: 'rg-terraform-state'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'qa.tfstate'        
