@@ -7,7 +7,6 @@ pool:
   nama: FreshAgent
 
 steps:
-
 - task: TerraformTask@5
   displayName: Terraform Init
   inputs:
