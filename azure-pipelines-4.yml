@@ -6,10 +6,11 @@ pool:
 
 stages:
 # DEV STAGE
-- stage: Dev_Init
-  displayName: Dev Terraform Init
+- stage: Dev_init_plan
+  displayName: Dev Terraform init plan
   jobs:
-  - job: InitDev
+  - job: InitplanDev
+    displayName: Terraform init plan Dev
     steps:
     - task: TerraformTask@5
       displayName: Terraform Init
@@ -22,11 +23,19 @@ stages:
         backendAzureRmStorageAccountName: 'storagegauravssris'
         backendAzureRmContainerName: 'gauravbackuptfstate'
         backendAzureRmKey: 'backup.tfstate'
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        environmentServiceNameAzureRM: 'FreshServiceConnection'
 # PROD STAGE
-- stage: Prod_Init
-  displayName: Prod Terraform Init
+- stage: Prod_Init_plan
+  displayName: Prod Terraform Init plan
   jobs:
-  - job: InitProd
+  - job: InitplanProd
+    displayName: Terraform Init plan Prod
     steps:
     - task: TerraformTask@5
       displayName: Terraform Init Prod
@@ -38,13 +47,21 @@ stages:
         backendAzureRmResourceGroupName: 'rg-terraform-state'
         backendAzureRmStorageAccountName: 'storagegauravssris'
         backendAzureRmContainerName: 'gauravbackuptfstate'
-        backendAzureRmKey: 'prod.tfstate'        
+        backendAzureRmKey: 'prod.tfstate'    
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+        environmentServiceNameAzureRM: 'FreshServiceConnection'        
+        
 # QA STAGE
-- stage: QA_Init
-  displayName: QA Terraform Init
+- stage: QA_Init_plan
+  displayName: QA Terraform Init plan
   jobs:
-  - job: InitQA
-    displayName: Init QA Infrastructure
+  - job: InitplanQA
+    displayName: Terraform Init plan QA 
     steps:
     - task: TerraformTask@5
       displayName: Terraform Init QA
@@ -57,3 +74,10 @@ stages:
         backendAzureRmStorageAccountName: 'storagegauravssris'
         backendAzureRmContainerName: 'gauravbackuptfstate'
         backendAzureRmKey: 'qa.tfstate'        
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+        environmentServiceNameAzureRM: 'FreshServiceConnection'    
