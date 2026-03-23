@@ -17,4 +17,9 @@ steps:
     backendAzureRmStorageAccountName: 'storagegauravssris'
     backendAzureRmContainerName: 'gauravbackuptfstate'
     backendAzureRmKey: 'backup.tfstate'
-
+- task: TerraformTask@5
+  displayName: Terraform Plan
+  inputs:
+    provider: 'azurerm'
+    command: 'validate'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
