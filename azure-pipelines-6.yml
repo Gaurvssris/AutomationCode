@@ -18,7 +18,7 @@ steps:
     backendAzureRmContainerName: 'gauravbackuptfstate'
     backendAzureRmKey: 'backup.tfstate'
 - task: TerraformTask@5
-  displayName: Terraform Plan
+  displayName: Terraform Validate
   inputs:
     provider: 'azurerm'
     command: 'validate'
