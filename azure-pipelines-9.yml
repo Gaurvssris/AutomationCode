@@ -1,0 +1,24 @@
+
+trigger:
+- main
+
+pool:
+  name: awesomeagent
+
+steps:
+- task: TerraformTask@5
+  displayName: terraform init
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+    backendServiceArm: 'awesome'
+    backendAzureRmStorageAccountName: 'storagegauravssris'
+    backendAzureRmContainerName: 'storagecontainer38'
+    backendAzureRmKey: 'backup.tfstate'
+- task: TerraformTask@5
+  displayName: terraform plan
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
