@@ -1,0 +1,19 @@
+
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: TerraformTask@5
+  displayName: terraform init
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Dev/Root'
+    backendServiceArm: 'awesome'
+    backendAzureRmStorageAccountName: 'storagegauravssris'
+    backendAzureRmContainerName: 'gauravbackuptfstate'
+    backendAzureRmKey: 'backup.tfstate'
