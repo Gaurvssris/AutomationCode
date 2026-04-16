@@ -1,19 +1,84 @@
 
-
 trigger:
 - main
 
-pool:
-  name: Agent15Apr
+stages:
 
-steps:
-- task: TerraformTask@5
-  displayName: terraform init
-  inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
-    backendServiceArm: 'awesome'
-    backendAzureRmStorageAccountName: 'storagegauravssris'
-    backendAzureRmContainerName: 'gauravbackuptfstate'
-    backendAzureRmKey: 'backup.tfstate'
+# ================= DEV =================
+- stage: DEV
+  displayName: "DEV - Terraform Init"
+
+  jobs:
+  - job: DEV_JOB
+    pool:
+      name: 'Agent15Apr'
+
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: '1.10.5'
+
+    - task: TerraformTask@5
+      displayName: "Terraform Init - DEV"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        backendServiceArm: 'awesome'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'dev.tfstate'
+
+# ================= QA =================
+- stage: QA
+  displayName: "QA - Terraform Init"
+  dependsOn: DEV
+  condition: succeeded()
+
+  jobs:
+  - job: QA_JOB
+    pool:
+      vmImage: 'windows-latest'
+
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: '1.10.5'
+
+    - task: TerraformTask@5
+      displayName: "Terraform Init - QA"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+        backendServiceArm: 'awesome'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'qa.tfstate'
+
+# ================= PROD =================
+- stage: PROD
+  displayName: "PROD - Terraform Init"
+  dependsOn: QA
+  condition: succeeded()
+
+  jobs:
+  - job: PROD_JOB
+    pool:
+      vmImage: 'windows-latest'
+
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: '1.10.5'
+
+    - task: TerraformTask@5
+      displayName: "Terraform Init - PROD"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+        backendServiceArm: 'awesome'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'prod.tfstate'    
