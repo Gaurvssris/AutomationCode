@@ -12,7 +12,7 @@ steps:
   inputs:
     provider: 'azurerm'
     command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/Dev/Root'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
     backendServiceArm: 'awesome'
     backendAzureRmStorageAccountName: 'storagegauravssris'
     backendAzureRmContainerName: 'gauravbackuptfstate'
