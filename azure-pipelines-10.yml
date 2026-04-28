@@ -103,35 +103,39 @@ stages:
       inputs:
         terraformVersion: '1.10.5'
 
-    # 🔹 Install TFLint
-    - script: |
-        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-        tflint --init
+    # 🔹 Install TFLint (Windows)
+    - powershell: |
+        Invoke-WebRequest -Uri https://github.com/terraform-linters/tflint/releases/latest/download/tflint_windows_amd64.zip -OutFile tflint.zip
+        Expand-Archive tflint.zip -DestinationPath $(Build.SourcesDirectory)
       displayName: "Install TFLint"
 
     # 🔹 Run TFLint
-    - script: |
-        tflint $(System.DefaultWorkingDirectory)/Root/Dev
+    - powershell: |
+        cd $(Build.SourcesDirectory)
+        .\tflint.exe --init
+        .\tflint.exe .\Root\Dev
       displayName: "Run TFLint"
 
-    # 🔹 Install tfsec
-    - script: |
-        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+    # 🔹 Install tfsec (Windows)
+    - powershell: |
+        Invoke-WebRequest -Uri https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-windows-amd64.exe -OutFile $(Build.SourcesDirectory)\tfsec.exe
       displayName: "Install tfsec"
 
     # 🔹 Run tfsec
-    - script: |
-        tfsec $(System.DefaultWorkingDirectory)/Root/Dev
+    - powershell: |
+        cd $(Build.SourcesDirectory)
+        .\tfsec.exe .\Root\Dev
       displayName: "Run tfsec"
 
     # 🔹 Install Checkov
-    - script: |
+    - powershell: |
+        pip install --upgrade pip
         pip install checkov
       displayName: "Install Checkov"
 
     # 🔹 Run Checkov
-    - script: |
-        checkov -d $(System.DefaultWorkingDirectory)/Root/Dev
+    - powershell: |
+        checkov -d $(Build.SourcesDirectory)\Root\Dev
       displayName: "Run Checkov"
 
     # 🔹 Terraform Init
@@ -140,96 +144,8 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        workingDirectory: '$(Build.SourcesDirectory)/Root/Dev'
         backendServiceArm: 'awesome'
         backendAzureRmStorageAccountName: 'storagegauravssris'
         backendAzureRmContainerName: 'gauravbackuptfstate'
         backendAzureRmKey: 'dev.tfstate'
-
-
-# ================= QA =================
-- stage: QA
-  displayName: "QA - DevSecOps + Terraform Init"
-  dependsOn: DEV
-  condition: succeeded()
-
-  jobs:
-  - job: QA_JOB
-    pool:
-      name: 'Agent15Apr'
-
-    steps:
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: '1.10.5'
-
-    - script: |
-        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-        tflint --init
-        tflint $(System.DefaultWorkingDirectory)/Root/QA
-      displayName: "TFLint QA"
-
-    - script: |
-        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
-        tfsec $(System.DefaultWorkingDirectory)/Root/QA
-      displayName: "tfsec QA"
-
-    - script: |
-        pip install checkov
-        checkov -d $(System.DefaultWorkingDirectory)/Root/QA
-      displayName: "Checkov QA"
-
-    - task: TerraformTask@5
-      displayName: "Terraform Init - QA"
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
-        backendServiceArm: 'awesome'
-        backendAzureRmStorageAccountName: 'storagegauravssris'
-        backendAzureRmContainerName: 'gauravbackuptfstate'
-        backendAzureRmKey: 'qa.tfstate'
-
-
-# ================= PROD =================
-- stage: PROD
-  displayName: "PROD - DevSecOps + Terraform Init"
-  dependsOn: QA
-  condition: succeeded()
-
-  jobs:
-  - job: PROD_JOB
-    pool:
-      name: 'Agent15Apr'
-
-    steps:
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: '1.10.5'
-
-    - script: |
-        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-        tflint --init
-        tflint $(System.DefaultWorkingDirectory)/Root/Prod
-      displayName: "TFLint PROD"
-
-    - script: |
-        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
-        tfsec $(System.DefaultWorkingDirectory)/Root/Prod
-      displayName: "tfsec PROD"
-
-    - script: |
-        pip install checkov
-        checkov -d $(System.DefaultWorkingDirectory)/Root/Prod
-      displayName: "Checkov PROD"
-
-    - task: TerraformTask@5
-      displayName: "Terraform Init - PROD"
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
-        backendServiceArm: 'awesome'
-        backendAzureRmStorageAccountName: 'storagegauravssris'
-        backendAzureRmContainerName: 'gauravbackuptfstate'
-        backendAzureRmKey: 'prod.tfstate'
