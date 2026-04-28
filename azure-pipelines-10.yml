@@ -1,4 +1,87 @@
 
+# trigger:
+# - main
+
+# stages:
+
+# # ================= DEV =================
+# - stage: DEV
+#   displayName: "DEV - Terraform Init"
+
+#   jobs:
+#   - job: DEV_JOB
+#     pool:
+#       name: 'Agent15Apr'
+
+#     steps:
+#     - task: TerraformInstaller@1
+#       inputs:
+#         terraformVersion: '1.10.5'
+
+#     - task: TerraformTask@5
+#       displayName: "Terraform Init - DEV"
+#       inputs:
+#         provider: 'azurerm'
+#         command: 'init'
+#         workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#         backendServiceArm: 'awesome'
+#         backendAzureRmStorageAccountName: 'storagegauravssris'
+#         backendAzureRmContainerName: 'gauravbackuptfstate'
+#         backendAzureRmKey: 'dev.tfstate'
+
+# # ================= QA =================
+# - stage: QA
+#   displayName: "QA - Terraform Init"
+#   dependsOn: DEV
+#   condition: succeeded()
+
+#   jobs:
+#   - job: QA_JOB
+#     pool:
+#       name: 'Agent15Apr'
+
+#     steps:
+#     - task: TerraformInstaller@1
+#       inputs:
+#         terraformVersion: '1.10.5'
+
+#     - task: TerraformTask@5
+#       displayName: "Terraform Init - QA"
+#       inputs:
+#         provider: 'azurerm'
+#         command: 'init'
+#         workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+#         backendServiceArm: 'awesome'
+#         backendAzureRmStorageAccountName: 'storagegauravssris'
+#         backendAzureRmContainerName: 'gauravbackuptfstate'
+#         backendAzureRmKey: 'qa.tfstate'
+
+# # ================= PROD =================
+# - stage: PROD
+#   displayName: "PROD - Terraform Init"
+#   dependsOn: QA
+#   condition: succeeded()
+
+#   jobs:
+#   - job: PROD_JOB
+#     pool:
+#       name: 'Agent15Apr'
+
+#     steps:
+#     - task: TerraformInstaller@1
+#       inputs:
+#         terraformVersion: '1.10.5'
+
+#     - task: TerraformTask@5
+#       displayName: "Terraform Init - PROD"
+#       inputs:
+#         provider: 'azurerm'
+#         command: 'init'
+#         workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+#         backendServiceArm: 'awesome'
+#         backendAzureRmStorageAccountName: 'storagegauravssris'
+#         backendAzureRmContainerName: 'gauravbackuptfstate'
+#         backendAzureRmKey: 'prod.tfstate'    
 trigger:
 - main
 
@@ -6,7 +89,7 @@ stages:
 
 # ================= DEV =================
 - stage: DEV
-  displayName: "DEV - Terraform Init"
+  displayName: "DEV - DevSecOps + Terraform Init"
 
   jobs:
   - job: DEV_JOB
@@ -14,10 +97,44 @@ stages:
       name: 'Agent15Apr'
 
     steps:
+
+    # 🔹 Install Terraform
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: '1.10.5'
 
+    # 🔹 Install TFLint
+    - script: |
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+        tflint --init
+      displayName: "Install TFLint"
+
+    # 🔹 Run TFLint
+    - script: |
+        tflint $(System.DefaultWorkingDirectory)/Root/Dev
+      displayName: "Run TFLint"
+
+    # 🔹 Install tfsec
+    - script: |
+        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+      displayName: "Install tfsec"
+
+    # 🔹 Run tfsec
+    - script: |
+        tfsec $(System.DefaultWorkingDirectory)/Root/Dev
+      displayName: "Run tfsec"
+
+    # 🔹 Install Checkov
+    - script: |
+        pip install checkov
+      displayName: "Install Checkov"
+
+    # 🔹 Run Checkov
+    - script: |
+        checkov -d $(System.DefaultWorkingDirectory)/Root/Dev
+      displayName: "Run Checkov"
+
+    # 🔹 Terraform Init
     - task: TerraformTask@5
       displayName: "Terraform Init - DEV"
       inputs:
@@ -29,9 +146,10 @@ stages:
         backendAzureRmContainerName: 'gauravbackuptfstate'
         backendAzureRmKey: 'dev.tfstate'
 
+
 # ================= QA =================
 - stage: QA
-  displayName: "QA - Terraform Init"
+  displayName: "QA - DevSecOps + Terraform Init"
   dependsOn: DEV
   condition: succeeded()
 
@@ -45,6 +163,22 @@ stages:
       inputs:
         terraformVersion: '1.10.5'
 
+    - script: |
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+        tflint --init
+        tflint $(System.DefaultWorkingDirectory)/Root/QA
+      displayName: "TFLint QA"
+
+    - script: |
+        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+        tfsec $(System.DefaultWorkingDirectory)/Root/QA
+      displayName: "tfsec QA"
+
+    - script: |
+        pip install checkov
+        checkov -d $(System.DefaultWorkingDirectory)/Root/QA
+      displayName: "Checkov QA"
+
     - task: TerraformTask@5
       displayName: "Terraform Init - QA"
       inputs:
@@ -56,9 +190,10 @@ stages:
         backendAzureRmContainerName: 'gauravbackuptfstate'
         backendAzureRmKey: 'qa.tfstate'
 
+
 # ================= PROD =================
 - stage: PROD
-  displayName: "PROD - Terraform Init"
+  displayName: "PROD - DevSecOps + Terraform Init"
   dependsOn: QA
   condition: succeeded()
 
@@ -72,6 +207,22 @@ stages:
       inputs:
         terraformVersion: '1.10.5'
 
+    - script: |
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+        tflint --init
+        tflint $(System.DefaultWorkingDirectory)/Root/Prod
+      displayName: "TFLint PROD"
+
+    - script: |
+        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+        tfsec $(System.DefaultWorkingDirectory)/Root/Prod
+      displayName: "tfsec PROD"
+
+    - script: |
+        pip install checkov
+        checkov -d $(System.DefaultWorkingDirectory)/Root/Prod
+      displayName: "Checkov PROD"
+
     - task: TerraformTask@5
       displayName: "Terraform Init - PROD"
       inputs:
@@ -81,4 +232,4 @@ stages:
         backendServiceArm: 'awesome'
         backendAzureRmStorageAccountName: 'storagegauravssris'
         backendAzureRmContainerName: 'gauravbackuptfstate'
-        backendAzureRmKey: 'prod.tfstate'    
+        backendAzureRmKey: 'prod.tfstate'
