@@ -1,0 +1,81 @@
+
+
+trigger:
+- main
+
+pool:
+  name: automated
+
+stages:
+
+# ---------------- DEV STAGE ----------------
+
+- stage: Dev
+  displayName: "Dev Stage"
+
+  jobs:
+  - job: DevJob
+    displayName: "Terraform Dev Job"
+
+    steps:
+    - task: TerraformTask@5
+      displayName: "Terraform Init Dev"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        backendServiceArm: 'gaurav983808'
+        backendAzureRmResourceGroupName: 'example-resources'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'backup.tfstate'
+    - task: TerraformTask@5
+      displayName: Terraform Plan Dev
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        environmentServiceNameAzureRM: 'gaurav983808'
+
+# ---------------- PROD STAGE ----------------
+
+- stage: Prod
+  displayName: "Prod Stage"
+  dependsOn: Dev
+
+  jobs:
+  - job: ProdJob
+    displayName: "Terraform Prod Job"
+
+    steps:
+    - task: TerraformTask@5
+      displayName: "Terraform Init Prod"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+        backendServiceArm: 'gaurav983808'
+        backendAzureRmResourceGroupName: 'example-resources'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'backup.tfstate'
+- stage: QA
+  displayName: "QA Stage"
+  
+
+  jobs:
+  - job: QAJob
+    displayName: "Terraform QA Job"
+
+    steps:
+    - task: TerraformTask@5
+      displayName: "Terraform Init QA"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+        backendServiceArm: 'gaurav983808'
+        backendAzureRmResourceGroupName: 'example-resources'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'backup.tfstate'        

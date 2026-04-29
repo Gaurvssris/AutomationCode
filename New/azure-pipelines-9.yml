@@ -1,0 +1,101 @@
+
+trigger:
+- main
+
+# pool:
+#   name: awesomeagent
+
+# steps:
+# - task: TerraformTask@5
+#   displayName: terraform init
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'init'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#     backendServiceArm: 'awesome'
+#     backendAzureRmStorageAccountName: 'storagegauravssris'
+#     backendAzureRmContainerName: 'storagecontainer38'
+#     backendAzureRmKey: 'backup.tfstate'
+# - task: TerraformTask@5
+#   displayName: terraform plan
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'plan'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#     environmentServiceNameAzureRM: 'awesome'
+# trigger:
+# - main
+
+# variables:
+#   buildConfiguration: 'Release'
+
+stages:
+
+# ================= DEV STAGE =================
+- stage: Dev
+  displayName: "Deploy to DEV"
+  jobs:
+  - job: Dev_Deploy
+    displayName: "Dev Deployment Job"
+    pool:
+      name: 'awesomeagent'
+
+    steps:
+      - task: TerraformTask@5
+        displayName: init
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+          backendServiceArm: 'awesome'
+          backendAzureRmStorageAccountName: 'storagegauravssris'
+          backendAzureRmContainerName: 'storagecontainer38'
+          backendAzureRmKey: 'backup.tfstate'
+
+# ================= QA STAGE =================
+- stage: QA
+  displayName: "Deploy to QA"
+  dependsOn: Dev
+  condition: succeeded()
+
+  jobs:
+  - job: QA_Deploy
+    displayName: "QA Deployment Job"
+    pool:
+      name: 'awesomeagent'
+
+    steps:
+      - task: TerraformTask@5
+        displayName: init
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+          backendServiceArm: 'awesome'
+          backendAzureRmStorageAccountName: 'storagegauravssris'
+          backendAzureRmContainerName: 'storagecontainer38'
+          backendAzureRmKey: 'backup.tfstate'
+
+# ================= PROD STAGE =================
+- stage: Prod
+  displayName: "Deploy to PROD"
+  dependsOn: QA
+  condition: succeeded()
+
+  jobs:
+  - job: Prod_Deploy
+    displayName: "Production Deployment Job"
+    pool:
+      name: 'awesomeagent'
+
+    steps:
+      - task: TerraformTask@5
+        displayName: init
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+          backendServiceArm: 'awesome'
+          backendAzureRmStorageAccountName: 'storagegauravssris'
+          backendAzureRmContainerName: 'storagecontainer38'
+          backendAzureRmKey: 'backup.tfstate'

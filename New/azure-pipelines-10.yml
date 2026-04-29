@@ -1,0 +1,159 @@
+
+# trigger:
+# - main
+
+# stages:
+
+# # ================= DEV =================
+# - stage: DEV
+#   displayName: "DEV - Terraform Init"
+
+#   jobs:
+#   - job: DEV_JOB
+#     pool:
+#       name: 'Agent15Apr'
+
+#     steps:
+#     - task: TerraformInstaller@1
+#       inputs:
+#         terraformVersion: '1.10.5'
+
+#     - task: TerraformTask@5
+#       displayName: "Terraform Init - DEV"
+#       inputs:
+#         provider: 'azurerm'
+#         command: 'init'
+#         workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#         backendServiceArm: 'awesome'
+#         backendAzureRmStorageAccountName: 'storagegauravssris'
+#         backendAzureRmContainerName: 'gauravbackuptfstate'
+#         backendAzureRmKey: 'dev.tfstate'
+
+# # ================= QA =================
+# - stage: QA
+#   displayName: "QA - Terraform Init"
+#   dependsOn: DEV
+#   condition: succeeded()
+
+#   jobs:
+#   - job: QA_JOB
+#     pool:
+#       name: 'Agent15Apr'
+
+#     steps:
+#     - task: TerraformInstaller@1
+#       inputs:
+#         terraformVersion: '1.10.5'
+
+#     - task: TerraformTask@5
+#       displayName: "Terraform Init - QA"
+#       inputs:
+#         provider: 'azurerm'
+#         command: 'init'
+#         workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+#         backendServiceArm: 'awesome'
+#         backendAzureRmStorageAccountName: 'storagegauravssris'
+#         backendAzureRmContainerName: 'gauravbackuptfstate'
+#         backendAzureRmKey: 'qa.tfstate'
+
+# # ================= PROD =================
+# - stage: PROD
+#   displayName: "PROD - Terraform Init"
+#   dependsOn: QA
+#   condition: succeeded()
+
+#   jobs:
+#   - job: PROD_JOB
+#     pool:
+#       name: 'Agent15Apr'
+
+#     steps:
+#     - task: TerraformInstaller@1
+#       inputs:
+#         terraformVersion: '1.10.5'
+
+#     - task: TerraformTask@5
+#       displayName: "Terraform Init - PROD"
+#       inputs:
+#         provider: 'azurerm'
+#         command: 'init'
+#         workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+#         backendServiceArm: 'awesome'
+#         backendAzureRmStorageAccountName: 'storagegauravssris'
+#         backendAzureRmContainerName: 'gauravbackuptfstate'
+#         backendAzureRmKey: 'prod.tfstate'    
+trigger:
+- main
+
+stages:
+
+# ================= DEV =================
+- stage: DEV
+  displayName: "DEV - DevSecOps + Terraform Init"
+
+  jobs:
+  - job: DEV_JOB
+    pool:
+      name: 'Agent15Apr'
+
+    steps:
+
+    # 🔹 Install Terraform
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: '1.10.5'
+
+    # 🔹 Install TFLint (Windows FIXED)
+    - powershell: |
+        $url = "https://github.com/terraform-linters/tflint/releases/latest/download/tflint_windows_amd64.zip"
+        $zipPath = "$(Build.SourcesDirectory)\tflint.zip"
+        $extractPath = "$(Build.SourcesDirectory)"
+
+        Invoke-WebRequest -Uri $url -OutFile $zipPath
+        Expand-Archive -Path "$zipPath" -DestinationPath "$extractPath" -Force
+      displayName: "Install TFLint"
+
+    # 🔹 Run TFLint (FIXED)
+    - powershell: |
+        cd "$(Build.SourcesDirectory)\Root\Dev"
+
+        terraform init -backend=false
+
+        "$(Build.SourcesDirectory)\tflint.exe" --init
+        "$(Build.SourcesDirectory)\tflint.exe"
+      displayName: "Run TFLint"
+
+    # 🔹 Install tfsec (Windows)
+    - powershell: |
+        $tfsecPath = "$(Build.SourcesDirectory)\tfsec.exe"
+        Invoke-WebRequest -Uri "https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-windows-amd64.exe" -OutFile $tfsecPath
+      displayName: "Install tfsec"
+
+    # 🔹 Run tfsec
+    - powershell: |
+        cd "$(Build.SourcesDirectory)\Root\Dev"
+        "$(Build.SourcesDirectory)\tfsec.exe" .
+      displayName: "Run tfsec"
+
+    # 🔹 Install Checkov
+    - powershell: |
+        pip install --upgrade pip
+        pip install checkov
+      displayName: "Install Checkov"
+
+    # 🔹 Run Checkov
+    - powershell: |
+        checkov -d "$(Build.SourcesDirectory)\Root\Dev"
+      displayName: "Run Checkov"
+
+    # 🔹 Terraform Init (Backend)
+    - task: TerraformTask@5
+      displayName: "Terraform Init - DEV"
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(Build.SourcesDirectory)/Root/Dev'
+        backendServiceArm: 'awesome'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'dev.tfstate'

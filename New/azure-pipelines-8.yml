@@ -1,0 +1,106 @@
+
+# trigger:
+# - main
+
+# pool:
+#   name: AgentService  
+
+# steps:
+# - task: TerraformTask@5
+#   displayName: Terraform Init
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'init'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#     backendServiceArm: 'newsc'
+#     backendAzureRmStorageAccountName: 'storagegauravssris'
+#     backendAzureRmContainerName: 'gauravbackuptfstate'
+#     backendAzureRmKey: 'backup.tfstate'
+# - task: TerraformTask@5
+#   displayName: Terraform Validate
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'validate'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+
+trigger:
+- main
+
+pool:
+  name: AgentService  
+
+stages:
+
+# 🔷 Stage 1 - DEV
+- stage: Dev
+  displayName: Deploy to Dev
+  jobs:
+  - job: DevJob
+    steps:
+    - task: TerraformTask@5
+      displayName: Terraform Init (Dev)
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        backendServiceArm: 'newsc'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'dev.tfstate'
+
+    - task: TerraformTask@5
+      displayName: Terraform Validate (Dev)
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+
+# 🔷 Stage 2 - QA
+- stage: QA
+  displayName: Deploy to QA
+  dependsOn: Dev
+  jobs:
+  - job: QAJob
+    steps:
+    - task: TerraformTask@5
+      displayName: Terraform Init (QA)
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+        backendServiceArm: 'newsc'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'qa.tfstate'
+
+    - task: TerraformTask@5
+      displayName: Terraform Validate (QA)
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+
+# 🔷 Stage 3 - Prod
+- stage: Test
+  displayName: Deploy to Prod
+  dependsOn: QA
+  jobs:
+  - job: TestJob
+    steps:
+    - task: TerraformTask@5
+      displayName: Terraform Init (Prod)
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+        backendServiceArm: 'newsc'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'test.tfstate'
+
+    - task: TerraformTask@5
+      displayName: Terraform Validate (Prod)
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'

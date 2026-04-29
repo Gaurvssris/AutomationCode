@@ -1,0 +1,115 @@
+
+trigger:
+- main
+
+pool:
+  name: Automated
+
+stages:
+
+# ---------------------------
+# Stage 1 - Build
+# ---------------------------
+- stage: Build
+  displayName: "Dev"
+
+  jobs:
+  - job: BuildJob
+    displayName: "Build Job"
+
+    steps:
+    - task: TerraformTask@5
+      displayName: Terraform init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        backendServiceArm: 'autoservicesonnection'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'storagecontainer38'
+        backendAzureRmKey: 'backup.tfstate'
+
+    - task: TerraformTask@5
+      displayName: terraform validate 
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+  
+
+# ---------------------------
+# Stage 2 - Test
+# ---------------------------
+- stage: Test
+  displayName: "Prod"
+  dependsOn: Build
+
+  jobs:
+  - job: TestJob
+    displayName: "Test Job"
+
+    steps:
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+        backendServiceArm: 'autoservicesonnection'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'storagecontainer38'
+        backendAzureRmKey: 'backup.tfstate'
+    - task: TerraformTask@5
+      displayName: terraform validate
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+
+
+# ---------------------------
+# Stage 3 - Deploy
+# ---------------------------
+- stage: Deploy
+  displayName: "QA"
+  dependsOn: Test
+
+  jobs:
+  - job: DeployJob
+    displayName: "Deploy Job"
+
+    steps:
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+        backendServiceArm: 'autoservicesonnection'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'storagecontainer38'
+        backendAzureRmKey: 'backup.tfstate'
+    - task: TerraformTask@5
+      displayName: terraform validate
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+
+# steps:
+# - task: TerraformTask@5
+#   displayName: terraform init
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'init'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#     backendServiceArm: 'autoservicesonnection'
+#     backendAzureRmStorageAccountName: 'storagegauravssris'
+#     backendAzureRmContainerName: 'storagecontainer38'
+#     backendAzureRmKey: 'backup.tfstate'
+
+# - task: TerraformTask@5
+#   displayName: terraform plan
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'plan'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#     environmentServiceNameAzureRM: 'autoservicesonnection'

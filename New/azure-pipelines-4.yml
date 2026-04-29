@@ -1,0 +1,83 @@
+trigger:
+- main
+
+pool:
+  name: FreshAgent
+
+stages:
+# DEV STAGE
+- stage: Dev_init_plan
+  displayName: Dev Terraform init plan
+  jobs:
+  - job: InitplanDev
+    displayName: Terraform init plan Dev
+    steps:
+    - task: TerraformTask@5
+      displayName: Terraform Init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        backendServiceArm: 'FreshServiceConnection'
+        backendAzureRmResourceGroupName: 'rg-terraform-state'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'backup.tfstate'
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+        environmentServiceNameAzureRM: 'FreshServiceConnection'
+# PROD STAGE
+- stage: Prod_Init_plan
+  displayName: Prod Terraform Init plan
+  jobs:
+  - job: InitplanProd
+    displayName: Terraform Init plan Prod
+    steps:
+    - task: TerraformTask@5
+      displayName: Terraform Init Prod
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+        backendServiceArm: 'FreshServiceConnection'
+        backendAzureRmResourceGroupName: 'rg-terraform-state'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'prod.tfstate'    
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+        environmentServiceNameAzureRM: 'FreshServiceConnection'        
+        
+# QA STAGE
+- stage: QA_Init_plan
+  displayName: QA Terraform Init plan
+  jobs:
+  - job: InitplanQA
+    displayName: Terraform Init plan QA 
+    steps:
+    - task: TerraformTask@5
+      displayName: Terraform Init QA
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+        backendServiceArm: 'FreshServiceConnection'
+        backendAzureRmResourceGroupName: 'rg-terraform-state'
+        backendAzureRmStorageAccountName: 'storagegauravssris'
+        backendAzureRmContainerName: 'gauravbackuptfstate'
+        backendAzureRmKey: 'qa.tfstate'        
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+        environmentServiceNameAzureRM: 'FreshServiceConnection'    
