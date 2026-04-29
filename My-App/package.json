@@ -1,0 +1,7 @@
+{
+  "name": "multi-stage-app",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "mkdir build && cp index.html build/"
+  }
+}
