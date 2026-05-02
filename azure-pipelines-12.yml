@@ -15,6 +15,68 @@
 # #     backendAzureRmStorageAccountName: 'storagegauravssris'
 # #     backendAzureRmContainerName: 'gauravbackuptfstate'
 # #     backendAzureRmKey: 'backup.tfstate'
+# trigger:
+# - main
+
+# pool:
+#   name: Agent15Apr
+
+# stages:
+
+# # ---------------- DEV ----------------
+# - stage: DEV
+#   displayName: Dev Environment
+#   jobs:
+#   - job: TerraformInitDev
+#     displayName: Terraform Init - Dev
+#     steps:
+#     - task: TerraformTask@5
+#       inputs:
+#         provider: 'azurerm'
+#         command: 'init'
+#         workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#         backendServiceArm: 'automation'
+#         backendAzureRmStorageAccountName: 'storagegauravssris'
+#         backendAzureRmContainerName: 'tfstate-dev'
+#         backendAzureRmKey: 'dev.tfstate'
+
+# # ---------------- QA ----------------
+# - stage: QA
+#   displayName: QA Environment
+#   dependsOn: DEV
+#   condition: succeeded()
+#   jobs:
+#   - job: TerraformInitQA
+#     displayName: Terraform Init - QA
+#     steps:
+#     - task: TerraformTask@5
+#       inputs:
+#         provider: 'azurerm'
+#         command: 'init'
+#         workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+#         backendServiceArm: 'automation'
+#         backendAzureRmStorageAccountName: 'storagegauravssris'
+#         backendAzureRmContainerName: 'tfstate-qa'
+#         backendAzureRmKey: 'qa.tfstate'
+
+# # ---------------- PROD ----------------
+# - stage: PROD
+#   displayName: Production Environment
+#   dependsOn: QA
+#   condition: succeeded()
+#   jobs:
+#   - job: TerraformInitProd
+#     displayName: Terraform Init - Prod
+#     steps:
+#     - task: TerraformTask@5
+#       inputs:
+#         provider: 'azurerm'
+#         command: 'init'
+#         workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+#         backendServiceArm: 'automation'
+#         backendAzureRmStorageAccountName: 'storagegauravssris'
+#         backendAzureRmContainerName: 'tfstate-prod'
+#         backendAzureRmKey: 'prod.tfstate'
 trigger:
 - main
 
@@ -23,14 +85,48 @@ pool:
 
 stages:
 
-# ---------------- DEV ----------------
+# ================= DEV =================
 - stage: DEV
   displayName: Dev Environment
   jobs:
-  - job: TerraformInitDev
-    displayName: Terraform Init - Dev
+  - job: DevSecOps_Dev
+    displayName: DevSecOps + Terraform Init (Dev)
     steps:
+
+    # Install Tools
+    - script: |
+        echo "Installing TFLint"
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+        echo "Installing tfsec"
+        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+
+        echo "Installing Checkov"
+        pip install checkov
+      displayName: Install DevSecOps Tools
+
+    # TFLint
+    - script: |
+        tflint --init
+        tflint
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+      displayName: Run TFLint (Code Quality)
+
+    # tfsec
+    - script: |
+        tfsec .
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+      displayName: Run tfsec (Security Scan)
+
+    # Checkov
+    - script: |
+        checkov -d .
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+      displayName: Run Checkov (Policy Scan)
+
+    # Terraform Init
     - task: TerraformTask@5
+      displayName: Terraform Init - Dev
       inputs:
         provider: 'azurerm'
         command: 'init'
@@ -40,15 +136,27 @@ stages:
         backendAzureRmContainerName: 'tfstate-dev'
         backendAzureRmKey: 'dev.tfstate'
 
-# ---------------- QA ----------------
+
+# ================= QA =================
 - stage: QA
-  displayName: QA Environment
   dependsOn: DEV
   condition: succeeded()
   jobs:
-  - job: TerraformInitQA
-    displayName: Terraform Init - QA
+  - job: DevSecOps_QA
+    displayName: DevSecOps + Terraform Init (QA)
     steps:
+
+    - script: |
+        tflint --init
+        tflint
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+
+    - script: tfsec .
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+
+    - script: checkov -d .
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+
     - task: TerraformTask@5
       inputs:
         provider: 'azurerm'
@@ -59,15 +167,27 @@ stages:
         backendAzureRmContainerName: 'tfstate-qa'
         backendAzureRmKey: 'qa.tfstate'
 
-# ---------------- PROD ----------------
+
+# ================= PROD =================
 - stage: PROD
-  displayName: Production Environment
   dependsOn: QA
   condition: succeeded()
   jobs:
-  - job: TerraformInitProd
-    displayName: Terraform Init - Prod
+  - job: DevSecOps_Prod
+    displayName: DevSecOps + Terraform Init (Prod)
     steps:
+
+    - script: |
+        tflint --init
+        tflint
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+
+    - script: tfsec .
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+
+    - script: checkov -d .
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+
     - task: TerraformTask@5
       inputs:
         provider: 'azurerm'
