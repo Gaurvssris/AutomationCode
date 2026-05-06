@@ -6,7 +6,6 @@ trigger:
 pool:
   name: Agent15Apr
 steps:
-  - 
 - task: TerraformTask@5
   inputs:
     provider: 'azurerm'
