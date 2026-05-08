@@ -1,0 +1,18 @@
+
+trigger:
+- main
+
+pool:
+  name: Agent29
+
+steps:
+- task: TerraformTask@5
+  displayName: Terraform Init
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+    backendServiceArm: 'newSCconnection'
+    backendAzureRmStorageAccountName: 'storagegauravssris'
+    backendAzureRmContainerName: 'gauravbackuptfstate'
+    backendAzureRmKey: 'backup.tfstate'
