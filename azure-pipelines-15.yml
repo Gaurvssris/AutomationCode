@@ -1,4 +1,23 @@
 
+# trigger:
+# - main
+
+# pool:
+#   name: AgentMay
+
+# steps:
+
+# - task: TerraformTask@5
+#   displayName: 'Terraform Init DEV'
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'init'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#     backendServiceArm: 'awesome'
+#     backendAzureRmResourceGroupName: 'gaurav-rg'
+#     backendAzureRmStorageAccountName: 'gauravstrg'
+#     backendAzureRmContainerName: 'gauravcont'
+#     backendAzureRmKey: 'backup.tfstate'
 trigger:
 - main
 
@@ -6,6 +25,10 @@ pool:
   name: AgentMay
 
 steps:
+
+# =========================
+# DEV INIT
+# =========================
 
 - task: TerraformTask@5
   displayName: 'Terraform Init DEV'
@@ -17,4 +40,36 @@ steps:
     backendAzureRmResourceGroupName: 'gaurav-rg'
     backendAzureRmStorageAccountName: 'gauravstrg'
     backendAzureRmContainerName: 'gauravcont'
-    backendAzureRmKey: 'backup.tfstate'
+    backendAzureRmKey: 'dev.tfstate'
+
+# =========================
+# QA INIT
+# =========================
+
+- task: TerraformTask@5
+  displayName: 'Terraform Init QA'
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+    backendServiceArm: 'awesome'
+    backendAzureRmResourceGroupName: 'gaurav-rg'
+    backendAzureRmStorageAccountName: 'gauravstrg'
+    backendAzureRmContainerName: 'gauravcont'
+    backendAzureRmKey: 'qa.tfstate'
+
+# =========================
+# PROD INIT
+# =========================
+
+- task: TerraformTask@5
+  displayName: 'Terraform Init PROD'
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+    backendServiceArm: 'awesome'
+    backendAzureRmResourceGroupName: 'gaurav-rg'
+    backendAzureRmStorageAccountName: 'gauravstrg'
+    backendAzureRmContainerName: 'gauravcont'
+    backendAzureRmKey: 'prod.tfstate'
