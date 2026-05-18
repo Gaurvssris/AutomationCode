@@ -18,58 +18,167 @@
 #     backendAzureRmStorageAccountName: 'gauravstrg'
 #     backendAzureRmContainerName: 'gauravcont'
 #     backendAzureRmKey: 'backup.tfstate'
+# trigger:
+# - main
+
+# pool:
+#   name: AgentMay
+
+# steps:
+
+# # =========================
+# # DEV INIT
+# # =========================
+
+# - task: TerraformTask@5
+#   displayName: 'Terraform Init DEV'
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'init'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+#     backendServiceArm: 'awesome'
+#     backendAzureRmResourceGroupName: 'gaurav-rg'
+#     backendAzureRmStorageAccountName: 'gauravstrg'
+#     backendAzureRmContainerName: 'gauravcont'
+#     backendAzureRmKey: 'dev.tfstate'
+
+# # =========================
+# # QA INIT
+# # =========================
+
+# - task: TerraformTask@5
+#   displayName: 'Terraform Init QA'
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'init'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+#     backendServiceArm: 'awesome'
+#     backendAzureRmResourceGroupName: 'gaurav-rg'
+#     backendAzureRmStorageAccountName: 'gauravstrg'
+#     backendAzureRmContainerName: 'gauravcont'
+#     backendAzureRmKey: 'qa.tfstate'
+
+# # =========================
+# # PROD INIT
+# # =========================
+
+# - task: TerraformTask@5
+#   displayName: 'Terraform Init PROD'
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'init'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+#     backendServiceArm: 'awesome'
+#     backendAzureRmResourceGroupName: 'gaurav-rg'
+#     backendAzureRmStorageAccountName: 'gauravstrg'
+#     backendAzureRmContainerName: 'gauravcont'
+#     backendAzureRmKey: 'prod.tfstate'
 trigger:
 - main
 
 pool:
   name: AgentMay
 
-steps:
+stages:
 
 # =========================
-# DEV INIT
+# DEV STAGE
 # =========================
 
-- task: TerraformTask@5
-  displayName: 'Terraform Init DEV'
-  inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
-    backendServiceArm: 'awesome'
-    backendAzureRmResourceGroupName: 'gaurav-rg'
-    backendAzureRmStorageAccountName: 'gauravstrg'
-    backendAzureRmContainerName: 'gauravcont'
-    backendAzureRmKey: 'dev.tfstate'
+- stage: DEV
+  displayName: 'DEV Environment'
+
+  jobs:
+  - job: Terraform_DEV_Init
+    displayName: 'Terraform Init DEV'
+
+    steps:
+
+    - task: TerraformTask@5
+      displayName: 'Terraform Init DEV'
+
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+
+        backendServiceArm: 'awesome'
+
+        backendAzureRmResourceGroupName: 'gaurav-rg'
+
+        backendAzureRmStorageAccountName: 'gauravstrg'
+
+        backendAzureRmContainerName: 'gauravcont'
+
+        backendAzureRmKey: 'dev.tfstate'
 
 # =========================
-# QA INIT
+# QA STAGE
 # =========================
 
-- task: TerraformTask@5
-  displayName: 'Terraform Init QA'
-  inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
-    backendServiceArm: 'awesome'
-    backendAzureRmResourceGroupName: 'gaurav-rg'
-    backendAzureRmStorageAccountName: 'gauravstrg'
-    backendAzureRmContainerName: 'gauravcont'
-    backendAzureRmKey: 'qa.tfstate'
+- stage: QA
+  displayName: 'QA Environment'
+
+  dependsOn: DEV
+  condition: succeeded()
+
+  jobs:
+  - job: Terraform_QA_Init
+    displayName: 'Terraform Init QA'
+
+    steps:
+
+    - task: TerraformTask@5
+      displayName: 'Terraform Init QA'
+
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/QA'
+
+        backendServiceArm: 'awesome'
+
+        backendAzureRmResourceGroupName: 'gaurav-rg'
+
+        backendAzureRmStorageAccountName: 'gauravstrg'
+
+        backendAzureRmContainerName: 'gauravcont'
+
+        backendAzureRmKey: 'qa.tfstate'
 
 # =========================
-# PROD INIT
+# PROD STAGE
 # =========================
 
-- task: TerraformTask@5
-  displayName: 'Terraform Init PROD'
-  inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
-    backendServiceArm: 'awesome'
-    backendAzureRmResourceGroupName: 'gaurav-rg'
-    backendAzureRmStorageAccountName: 'gauravstrg'
-    backendAzureRmContainerName: 'gauravcont'
-    backendAzureRmKey: 'prod.tfstate'
+- stage: PROD
+  displayName: 'PROD Environment'
+
+  dependsOn: QA
+  condition: succeeded()
+
+  jobs:
+  - job: Terraform_PROD_Init
+    displayName: 'Terraform Init PROD'
+
+    steps:
+
+    - task: TerraformTask@5
+      displayName: 'Terraform Init PROD'
+
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+
+        workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Prod'
+
+        backendServiceArm: 'awesome'
+
+        backendAzureRmResourceGroupName: 'gaurav-rg'
+
+        backendAzureRmStorageAccountName: 'gauravstrg'
+
+        backendAzureRmContainerName: 'gauravcont'
+
+        backendAzureRmKey: 'prod.tfstate'
