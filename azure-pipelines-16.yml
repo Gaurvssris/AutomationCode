@@ -1,0 +1,18 @@
+
+trigger:
+- main
+
+pool:
+  name: AgentMay
+
+steps:
+
+- task: TerraformTask@5
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Root/Dev'
+    backendServiceArm: 'automation'
+    backendAzureRmStorageAccountName: 'gauravstrg'
+    backendAzureRmContainerName: 'gauravcont'
+    backendAzureRmKey: 'backup.tfstate'
